@@ -3,7 +3,7 @@
 // RESPONSABILIDADE: Sincronizar estado React com localStorage
 // ============================================
 
-import { useState, useEffect } from 'react'
+import { useState,  } from 'react'
 
 // Hook genérico - pode usar em QUALQUER lugar do app
 export function useLocalStorage(key, initialValue) {
