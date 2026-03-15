@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Welcome } from './components/Welcome/Welcome'
 import { LGPDConsent } from './components/LGPDConsent/LGPDConsent'
 import { UserSetup } from './components/UserSetup/UserSetup'
 import { LocationFinder } from './components/LocationFinder/LocationFinder'
@@ -6,6 +7,10 @@ import { STORAGE_KEYS } from './constants'
 
 export default function App() {
   // Estados
+  const [hasStarted, setHasStarted] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.hasStarted) === 'true'
+  })
+  
   const [hasConsent, setHasConsent] = useState(() => {
     return localStorage.getItem(STORAGE_KEYS.lgpdConsent) === 'true'
   })
@@ -15,6 +20,11 @@ export default function App() {
   })
 
   // Handlers
+  const handleEnterApp = () => {
+    localStorage.setItem(STORAGE_KEYS.hasStarted, 'true')
+    setHasStarted(true)
+  }
+
   const handleAcceptLGPD = () => {
     localStorage.setItem(STORAGE_KEYS.lgpdConsent, 'true')
     setHasConsent(true)
@@ -26,6 +36,10 @@ export default function App() {
   }
 
   // Fluxo de telas
+  if (!hasStarted) {
+    return <Welcome onEnter={handleEnterApp} />
+  }
+
   if (!hasConsent) {
     return <LGPDConsent onAccept={handleAcceptLGPD} />
   }

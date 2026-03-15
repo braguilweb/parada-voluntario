@@ -25,6 +25,7 @@ export const APP_CONFIG = {
 
 // Chaves usadas no localStorage
 export const STORAGE_KEYS = {
+  hasStarted: 'has-started',
   lgpdConsent: 'lgpd-consent',
   userName: 'user-name',
   history: 'paradas-history',
