@@ -4,7 +4,7 @@
 
 export const APP_CONFIG = {
   // Nome exibido no app
-  name: 'Parada Voluntário',
+  name: 'Parei Aqui',
   
   // Tempo de retenção de dados (dias)
   dataRetentionDays: 30,

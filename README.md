@@ -1,4 +1,4 @@
-# 📍 Parada Voluntário
+# 📍 Parei Aqui
 
 Aplicativo PWA para voluntários registrarem locais de trabalho e compartilhar sua localização de forma rápida.
 

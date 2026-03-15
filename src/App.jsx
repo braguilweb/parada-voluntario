@@ -38,7 +38,7 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <header style={styles.header}>
-        <h1 style={styles.title}>📍 Parada Voluntário</h1>
+        <h1 style={styles.title}>📍 Parei Aqui</h1>
         <div style={styles.user}>
           <span>👤 {userName}</span>
           <button 
