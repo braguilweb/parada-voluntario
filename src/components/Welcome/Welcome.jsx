@@ -39,7 +39,7 @@ export function Welcome({ onEnter }) {
         <div style={styles.logo}>📍</div>
         <h1 style={styles.title}>Parei Aqui</h1>
         <p style={styles.subtitle}>
-          Registre sua localização e compartilhe com seus colegas voluntários
+          Registre sua localização e compartilhe de forma simples e rápida
         </p>
       </div>
 
@@ -60,7 +60,7 @@ export function Welcome({ onEnter }) {
         <ol style={styles.steps}>
           <li style={styles.step}>
             <span style={styles.stepNumber}>1</span>
-            <span>Clique em entrar e aceite o termo de privacidade</span>
+            <span>Entrar e aceitar termo de privacidade</span>
           </li>
           <li style={styles.step}>
             <span style={styles.stepNumber}>2</span>
@@ -72,7 +72,7 @@ export function Welcome({ onEnter }) {
           </li>
           <li style={styles.step}>
             <span style={styles.stepNumber}>4</span>
-            <span>Compartilhe quando precisar com seus colegas</span>
+            <span>Compartilhe com quem precisar!</span>
           </li>
         </ol>
       </div>
@@ -89,14 +89,42 @@ export function Welcome({ onEnter }) {
           ✅ Aplicação LGPD-friendly • Sem servidor • Dados locais
         </p>
       </div>
+
+      {/* Copyright & Developer Links */}
+      <div style={styles.copyright}>
+        <p style={styles.copyrightText}>
+          © 2026 Parei Aqui. Todos os direitos reservados.
+        </p>
+        <div style={styles.developerLinks}>
+          <a 
+            href="https://wa.me/5522981611821" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={styles.link}
+          >
+            💬 WhatsApp
+          </a>
+          <a 
+            href="https://www.linkedin.com/in/guilherme-de-almeida-braga/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={styles.link}
+          >
+            🔗 LinkedIn
+          </a>
+        </div>
+        <p style={styles.developerNote}>
+          Desenvolvido por Guilherme Braga
+        </p>
+      </div>
     </div>
   )
 }
 
 const styles = {
   container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    /* minHeight: '100vh', */
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: 'white',
     padding: '20px',
     display: 'flex',
@@ -234,5 +262,38 @@ const styles = {
     textAlign: 'center',
     color: '#047857',
     fontWeight: 500
+  },
+  copyright: {
+    borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+    paddingTop: '16px',
+    paddingBottom: '12px',
+    textAlign: 'center'
+  },
+  copyrightText: {
+    fontSize: '11px',
+    margin: '0 0 8px 0',
+    opacity: 0.85
+  },
+  developerLinks: {
+    display: 'flex',
+    gap: '16px',
+    justifyContent: 'center',
+    marginBottom: '8px'
+  },
+  link: {
+    color: 'white',
+    textDecoration: 'none',
+    fontSize: '12px',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    background: 'rgba(255, 255, 255, 0.15)',
+    transition: 'background 0.2s',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    fontWeight: 500
+  },
+  developerNote: {
+    fontSize: '10px',
+    margin: '0',
+    opacity: 0.75
   }
 }

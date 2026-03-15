@@ -7,80 +7,85 @@ import { APP_CONFIG } from '../../constants'
 
 // Props que este componente recebe:
 // - onAccept: função chamada quando usuário clica "Aceitar"
-export function LGPDConsent({ onAccept }) {
+// - onBack: função chamada quando usuário clica voltar
+export function LGPDConsent({ onAccept, onBack }) {
   
-  // Dados dos avisos de privacidade (array = fácil de manter)
+  // Dados dos avisos de privacidade (simplicidade)
   const privacyItems = [
     {
       icon: '📍',
-      title: 'GPS ativo',
-      description: 'Usamos sua localização apenas para marcar onde parou'
+      title: 'GPS',
+      description: 'Localização usada apenas para registrar onde você está'
     },
     {
       icon: '💾',
-      title: 'Dados locais',
-      description: 'Tudo fica no seu celular, não enviamos para servidor'
+      title: 'Dados Locais',
+      description: 'Tudo fica no seu celular, nada enviado a servidores'
     },
     {
       icon: '🗑️',
-      title: 'Auto-exclusão',
-      description: `Histórico apaga automaticamente após ${APP_CONFIG.dataRetentionDays} dias`
+      title: 'Auto-limpeza',
+      description: `Histórico apaga automaticamente em ${APP_CONFIG.dataRetentionDays} dias`
     },
     {
       icon: '📤',
-      title: 'Compartilhamento manual',
-      description: 'Você escolhe quando e com quem compartilhar'
+      title: 'Você Controla',
+      description: 'Compartilha apenas quando e com quem quer'
     },
     {
       icon: '🔐',
-      title: 'Sem login',
-      description: 'Não pedimos email, telefone ou senha'
+      title: 'Sem Senha',
+      description: 'Não pedimos email, telefone ou dados pessoais'
     }
   ]
 
   return (
-    // Container centralizado com fundo gradiente
     <div style={styles.container}>
-      <div style={styles.card}>
-        
-        {/* Ícone e título */}
-        <div style={styles.header}>
-          <span style={styles.lockIcon}>🔒</span>
-          <h1 style={styles.title}>Sua Privacidade é Importante</h1>
+      {/* Header com botão voltar */}
+      <div style={styles.header}>
+        <button 
+          onClick={onBack}
+          style={styles.backButton}
+        >
+          ← Voltar
+        </button>
+      </div>
+
+      {/* Conteúdo Principal */}
+      <div style={styles.content}>
+        <div style={styles.titleSection}>
+          <span style={styles.icon}>🔒</span>
+          <h1 style={styles.title}>Sua Privacidade</h1>
+          <p style={styles.subtitle}>Como protegemos seus dados</p>
         </div>
 
-        {/* Introdução */}
-        <p style={styles.intro}>
-          <strong>Antes de começar, precisamos que você saiba:</strong>
-        </p>
-
-        {/* Lista de itens de privacidade */}
+        {/* Lista de privacidade */}
         <ul style={styles.list}>
           {privacyItems.map((item, index) => (
-            // Cada item é um <li> com key única (obrigatório no React)
             <li key={index} style={styles.listItem}>
-              <span style={styles.itemIcon}>{item.icon}</span>
+              <div style={styles.itemIcon}>{item.icon}</div>
               <div style={styles.itemContent}>
-                <strong style={styles.itemTitle}>{item.title}:</strong>
-                <span style={styles.itemDescription}> {item.description}</span>
+                <strong style={styles.itemTitle}>{item.title}</strong>
+                <p style={styles.itemDescription}>{item.description}</p>
               </div>
             </li>
           ))}
         </ul>
 
         {/* Aviso LGPD */}
-        <p style={styles.footer}>
-          Conforme a <strong>LGPD</strong>, você pode parar de usar a qualquer momento.
+        <p style={styles.lgpdNote}>
+          ℹ️ Conforme a LGPD, você pode parar a qualquer momento
         </p>
+      </div>
 
-        {/* Botão de ação */}
+      {/* Botão de Aceitar */}
+      <div style={styles.footer}>
         <button 
           onClick={onAccept}
           style={styles.button}
         >
-          ✅ Entendi e Aceito Usar
+          ✅ Aceitar e Continuar
         </button>
-
       </div>
     </div>
   )
@@ -92,104 +97,140 @@ export function LGPDConsent({ onAccept }) {
 
 const styles = {
   container: {
-    // Ocupa toda a tela
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    /* minHeight: '100vh', */
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: 'white',
     padding: '20px',
-    // Fundo gradiente verde
-    background: `linear-gradient(135deg, ${APP_CONFIG.colors.primary} 0%, ${APP_CONFIG.colors.primaryDark} 100%)`,
-  },
-  
-  card: {
-    background: 'white',
-    borderRadius: '20px',
-    padding: '32px',
-    maxWidth: '420px',
-    width: '100%',
-    // Sombra elegante
-    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+    display: 'flex',
+    flexDirection: 'column'
   },
   
   header: {
-    textAlign: 'center',
-    marginBottom: '20px',
+    paddingTop: '12px',
+    paddingBottom: '16px',
+    display: 'flex',
+    alignItems: 'center'
   },
-  
-  lockIcon: {
+
+  backButton: {
+    background: 'rgba(255, 255, 255, 0.15)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    fontWeight: 500,
+    transition: 'background 0.2s'
+  },
+
+  content: {
+    flex: 1,
+    maxWidth: '480px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '100%'
+  },
+
+  titleSection: {
+    textAlign: 'center',
+    marginBottom: '28px',
+    paddingTop: '20px'
+  },
+
+  icon: {
     fontSize: '48px',
     display: 'block',
-    marginBottom: '12px',
+    marginBottom: '12px'
   },
-  
+
   title: {
-    fontSize: '24px',
-    fontWeight: 700,
-    color: APP_CONFIG.colors.text,
-    margin: 0,
+    fontSize: '28px',
+    fontWeight: '700',
+    margin: '0 0 8px 0'
   },
-  
-  intro: {
-    color: '#374151',
-    lineHeight: 1.6,
-    fontSize: '15px',
-    marginBottom: '16px',
+
+  subtitle: {
+    fontSize: '14px',
+    margin: '0',
+    opacity: 0.95
   },
-  
+
   list: {
-    margin: '16px 0',
-    padding: 0,
-    listStyle: 'none', // Remove bullets padrão
-  },
-  
-  listItem: {
+    margin: '0',
+    padding: '0',
+    listStyle: 'none',
     display: 'flex',
-    alignItems: 'flex-start',
-    marginBottom: '14px',
-    lineHeight: 1.5,
+    flexDirection: 'column',
+    gap: '12px',
+    marginBottom: '20px'
   },
-  
+
+  listItem: {
+    alignItems: 'flex-start',
+    gap: '12px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
+    padding: '12px',
+    borderRadius: '10px',
+    border: '1px solid rgba(255, 255, 255, 0.15)'
+  },
+
   itemIcon: {
     fontSize: '20px',
-    marginRight: '12px',
-    flexShrink: 0, // Não deixa ícone encolher
+    flexShrink: 0,
+    marginTop: '2px'
   },
-  
+
   itemContent: {
-    flex: 1,
+    flex: 1
   },
-  
+
   itemTitle: {
-    color: APP_CONFIG.colors.text,
-  },
-  
-  itemDescription: {
-    color: '#4b5563',
-  },
-  
-  footer: {
+    display: 'block',
     fontSize: '13px',
-    color: APP_CONFIG.colors.textMuted,
-    marginTop: '16px',
-    textAlign: 'center',
+    fontWeight: '600',
+    marginBottom: '2px'
   },
-  
+
+  itemDescription: {
+    fontSize: '12px',
+    margin: '0',
+    opacity: 0.95,
+    lineHeight: 1.4
+  },
+
+  lgpdNote: {
+    fontSize: '12px',
+    textAlign: 'center',
+    margin: '16px 0',
+    padding: '12px',
+    background: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: '8px',
+    opacity: 0.9
+  },
+
+  footer: {
+    paddingBottom: '20px'
+  },
+
   button: {
     width: '100%',
-    padding: '16px',
-    background: APP_CONFIG.colors.primary,
-    color: 'white',
+    maxWidth: '300px',
+    padding: '14px 24px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    display: 'block',
+    background: 'white',
+    color: '#059669',
     border: 'none',
     borderRadius: '12px',
     fontSize: '16px',
-    fontWeight: 600,
+    fontWeight: '600',
     cursor: 'pointer',
-    marginTop: '20px',
-    // Efeito hover via CSS-in-JS não é direto, 
-    // mas podemos adicionar transição
-    transition: 'transform 0.2s, box-shadow 0.2s',
-  },
+    transition: 'transform 0.2s',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+  }
 }
 
 // Dica: Para hover funcionar bem, você pode usar 

@@ -25,6 +25,10 @@ export default function App() {
     setHasStarted(true)
   }
 
+  const handleBackFromLGPD = () => {
+    setHasStarted(false)
+  }
+
   const handleAcceptLGPD = () => {
     localStorage.setItem(STORAGE_KEYS.lgpdConsent, 'true')
     setHasConsent(true)
@@ -41,7 +45,7 @@ export default function App() {
   }
 
   if (!hasConsent) {
-    return <LGPDConsent onAccept={handleAcceptLGPD} />
+    return <LGPDConsent onAccept={handleAcceptLGPD} onBack={handleBackFromLGPD} />
   }
 
   if (!userName) {
