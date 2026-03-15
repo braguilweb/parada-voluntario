@@ -231,6 +231,8 @@ const styles = {
     fontSize: '12px',
     opacity: 1,
     margin: '0',
-    textAlign: 'center'
+    textAlign: 'center',
+    color: '#047857',
+    fontWeight: 500
   }
 }
