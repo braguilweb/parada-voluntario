@@ -157,23 +157,25 @@ const styles = {
   featureDescription: {
     fontSize: '12px',
     margin: '0',
-    opacity: 0.9,
+    opacity: 1,
     lineHeight: 1.3
   },
   ctaSection: {
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.15)',
     borderRadius: '16px',
     padding: '24px',
     marginBottom: '24px',
     maxWidth: '480px',
     marginLeft: 'auto',
     marginRight: 'auto',
-    width: '100%'
+    width: '100%',
+    backdropFilter: 'blur(10px)'
   },
   ctaTitle: {
     fontSize: '18px',
     fontWeight: '600',
-    margin: '0 0 16px 0'
+    margin: '0 0 16px 0',
+    opacity: 1
   },
   steps: {
     listStyle: 'none',
@@ -188,10 +190,11 @@ const styles = {
     alignItems: 'flex-start',
     gap: '12px',
     fontSize: '14px',
-    lineHeight: 1.4
+    lineHeight: 1.4,
+    opacity: 1
   },
   stepNumber: {
-    background: 'rgba(255, 255, 255, 0.3)',
+    background: 'rgba(255, 255, 255, 0.25)',
     borderRadius: '50%',
     width: '28px',
     height: '28px',
@@ -200,7 +203,8 @@ const styles = {
     justifyContent: 'center',
     flexShrink: 0,
     fontWeight: '600',
-    fontSize: '12px'
+    fontSize: '12px',
+    opacity: 1
   },
   footer: {
     display: 'flex',
@@ -225,7 +229,7 @@ const styles = {
   },
   disclaimer: {
     fontSize: '12px',
-    opacity: 0.9,
+    opacity: 1,
     margin: '0',
     textAlign: 'center'
   }
