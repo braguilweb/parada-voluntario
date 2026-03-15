@@ -12,8 +12,9 @@ const customIcon = new L.Icon({
     popupAnchor: [0, -38]
 });
 
-export const LocationMarker = ({ position, address }) => {
+export const LocationMarker = ({ position }) => {
     const map = useMap();
+    const accuracy = position?.accuracy ?? 50;
 
     // Centraliza o mapa na posição do marcador
     useEffect(() => {

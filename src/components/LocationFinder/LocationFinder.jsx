@@ -1,364 +1,187 @@
-import { useState } from 'react'
-import { getCurrentPosition, reverseGeocode } from '../../utils/geolocation'
+// src/components/LocationFinder/LocationFinder.jsx
+import { useState, useEffect } from 'react';
+import { useGeolocation } from '../../hooks/useGeoLocation';
+import { MapView } from '../Map/MapView';
+import { ShareButtons } from '../ShareButtons/ShareButtons';
+import { getAddressFromCoords } from '../../utils/geocoding'; // vamos criar isso
 
-export function LocationFinder({ onLocationFound }) {
-  
-  const [status, setStatus] = useState('idle') // idle | loading | success | error | blocked
-  const [location, setLocation] = useState(null)
-  const [error, setError] = useState(null)
+export function LocationFinder() {
+  const { position, error, loading, refresh } = useGeolocation();
+  const [address, setAddress] = useState(null);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const userName = localStorage.getItem('paradaUserName') || 'Voluntário';
 
-  const handleClick = async () => {
-    setStatus('loading')
-    setError(null)
-    setLocation(null)
+  // Busca endereço quando há posição (usa utilitário centralizado)
+  useEffect(() => {
+    if (!position) return;
 
-    try {
-      console.log('Solicitando GPS...')
-      const position = await getCurrentPosition()
-      
-      console.log('GPS OK:', position)
-      const address = await reverseGeocode(position.lat, position.lng)
-      
-      const result = { position, address, capturedAt: new Date().toLocaleString('pt-BR') }
-      
-      setLocation(result)
-      setStatus('success')
-      onLocationFound?.(result)
-      
-    } catch (err) {
-      console.error('Erro:', err)
-      
-      // Detecta especificamente bloqueio de permissão
-      if (err.message.includes('Permissão negada') || 
-          err.message.includes('blocked') ||
-          err.message.includes('denied')) {
-        setStatus('blocked')
-      } else {
-        setStatus('error')
+    let active = true;
+    setAddressLoading(true);
+
+    (async () => {
+      try {
+        const data = await getAddressFromCoords(position.lat, position.lng);
+        if (!active) return;
+
+        const addr = data.address || {};
+        setAddress({
+          street: addr.road || addr.pedestrian || 'Rua não identificada',
+          neighborhood: addr.suburb || addr.neighbourhood || 'Bairro não identificado',
+          city: addr.city || addr.town || addr.village || 'Cidade não identificada',
+          accuracy: position.accuracy
+        });
+      } catch (err) {
+        console.error('Erro ao buscar endereço:', err);
+      } finally {
+        if (active) setAddressLoading(false);
       }
-      
-      setError(err.message)
-    }
-  }
+    })();
 
-  // ===== RENDER =====
+    return () => {
+      active = false;
+    };
+  }, [position]);
+
+
+  const handleGetLocation = () => {
+    refresh();
+  };
 
   return (
     <div style={styles.container}>
-      
-      {/* BOTÃO */}
+      {/* Botão principal - igual estava antes */}
       <button 
-        onClick={handleClick}
-        disabled={status === 'loading'}
-        style={styles.button}
+        onClick={handleGetLocation}
+        disabled={loading}
+        style={styles.mainButton}
       >
-        {status === 'loading' ? '⏳ Obtendo localização...' : '📍 Onde estou?'}
+        {loading ? '📡 Buscando...' : '📍 Onde estou?'}
       </button>
 
-      {/* IDLE - Instrução inicial */}
-      {status === 'idle' && (
-        <p style={styles.hint}>
-          Toque acima e <strong>permita</strong> o GPS quando perguntado
-        </p>
-      )}
+      {/* Card de informações - igual estava antes */}
+      {(address || loading || error) && (
+        <div style={styles.card}>
+          {loading || addressLoading ? (
+            <div style={styles.loading}>Obtendo localização...</div>
+          ) : error ? (
+            <div style={{ color: '#b91c1c', fontWeight: 600 }}>
+              ⚠️ {error}
+            </div>
+          ) : address ? (
+            <>
+              {/* Badge de precisão */}
+              <div style={styles.badge}>
+                ✓ Boa (~{Math.round(address.accuracy || 17)}m)
+              </div>
 
-      {/* LOADING */}
-      {status === 'loading' && (
-        <div style={styles.loadingBox}>
-          <p>🛰️ Conectando aos satélites...</p>
-          <p style={styles.loadingSub}>Aceite a permissão se aparecer</p>
+              {/* Endereço */}
+              <h2 style={styles.street}>{address.street}</h2>
+              <h3 style={styles.neighborhood}>{address.neighborhood}</h3>
+              <p style={styles.city}>{address.city}</p>
+
+              {/* Coordenadas */}
+              <div style={styles.coords}>
+                {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+              </div>
+
+              {/* Data/hora */}
+              <div style={styles.datetime}>
+                📍 {new Date().toLocaleString('pt-BR')}
+              </div>
+
+              {/* Botões */}
+              <ShareButtons position={position} userName={userName} />
+            </>
+          ) : null}
         </div>
       )}
 
-      {/* BLOQUEADO - Tela especial de ajuda */}
-      {status === 'blocked' && (
-        <div style={styles.blockedBox}>
-          <div style={styles.blockedIcon}>🚫</div>
-          <h3 style={styles.blockedTitle}>GPS Bloqueado</h3>
-          
-          <p style={styles.blockedText}>
-            Você negou o acesso anteriormente. Para desbloquear:
-          </p>
-
-          {/* Android */}
-          <div style={styles.helpCard}>
-            <strong>📱 Android (Chrome):</strong>
-            <ol style={styles.helpList}>
-              <li>Chrome → ⋮ → <strong>Configurações</strong></li>
-              <li><strong>Configurações do site</strong> → Localização</li>
-              <li>Encontre este site e toque <strong>Permitir</strong></li>
-              <li>Volte aqui e toque <strong>"Onde estou?"</strong> novamente</li>
-            </ol>
-          </div>
-
-          {/* iPhone */}
-          <div style={styles.helpCard}>
-            <strong>🍎 iPhone (Safari):</strong>
-            <ol style={styles.helpList}>
-              <li><strong>Ajustes</strong> → Safari → Avançado</li>
-              <li><strong>Dados do site</strong> → busque este site</li>
-              <li>Toque <strong>Editar</strong> → <strong>Apagar</strong></li>
-              <li>Volte aqui e recarregue a página</li>
-            </ol>
-          </div>
-
-          <button 
-            onClick={() => window.location.reload()}
-            style={styles.reloadBtn}
-          >
-            🔄 Recarregar página
-          </button>
-          
-          <button 
-            onClick={() => setStatus('idle')}
-            style={styles.tryAgainBtn}
-          >
-            Tentar novamente
-          </button>
+      {/* MAPA NOVO - Adicionado abaixo do card */}
+      {position && (
+        <div style={styles.mapSection}>
+          <h4 style={styles.mapTitle}>Visualização no Mapa</h4>
+          <MapView position={position} loading={false} error={null} />
         </div>
       )}
-
-      {/* ERRO GENÉRICO */}
-      {status === 'error' && (
-        <div style={styles.errorBox}>
-          <p>{error}</p>
-          <button onClick={() => setStatus('idle')} style={styles.retryBtn}>
-            🔄 Tentar novamente
-          </button>
-        </div>
-      )}
-
-      {/* SUCESSO */}
-      {status === 'success' && location && (
-        <div style={styles.resultBox}>
-          
-          {/* Qualidade */}
-          <div style={qualityStyle(location.position.accuracy)}>
-            {location.position.accuracy <= 10 ? '🎯 Excelente' : 
-             location.position.accuracy <= 50 ? '✓ Boa' : '⚠ Regular'}
-            {' '} (~{Math.round(location.position.accuracy)}m)
-          </div>
-
-          {/* Endereço */}
-          <div style={styles.addressBlock}>
-            <h2 style={styles.street}>{location.address.fullStreet}</h2>
-            <p style={styles.neighbourhood}>Bairro {location.address.neighbourhood}</p>
-            {location.address.city && <p style={styles.city}>{location.address.city}</p>}
-          </div>
-
-          <p style={styles.coordinates}>
-            {location.position.lat.toFixed(6)}, {location.position.lng.toFixed(6)}
-          </p>
-          <p style={styles.timestamp}>📍 {location.capturedAt}</p>
-
-          {/* Ações */}
-          <div style={styles.actions}>
-            <button style={styles.whatsappBtn}>📱 WhatsApp</button>
-            <button style={styles.copyBtn}>📋 Copiar</button>
-          </div>
-
-        </div>
-      )}
-
     </div>
-  )
+  );
 }
 
-// Estilos dinâmicos
-const qualityStyle = (accuracy) => ({
-  display: 'inline-block',
-  padding: '8px 16px',
-  borderRadius: 20,
-  fontSize: 13,
-  fontWeight: 600,
-  marginBottom: 16,
-  background: accuracy <= 10 ? '#d1fae5' : accuracy <= 50 ? '#fef3c7' : '#fee2e2',
-  color: accuracy <= 10 ? '#065f46' : accuracy <= 50 ? '#92400e' : '#991b1b',
-})
-
 const styles = {
-  container: { padding: 20 },
-  
-  button: {
+  container: {
+    padding: '20px 0',
+  },
+  mainButton: {
     width: '100%',
-    padding: 20,
+    padding: '20px',
     background: '#059669',
     color: 'white',
     border: 'none',
-    borderRadius: 16,
-    fontSize: 18,
-    fontWeight: 700,
+    borderRadius: '12px',
+    fontSize: '18px',
+    fontWeight: '600',
     cursor: 'pointer',
+    marginBottom: '20px',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
   },
-  
-  hint: {
-    textAlign: 'center',
-    color: '#6b7280',
-    fontSize: 14,
-    marginTop: 12,
-  },
-  
-  loadingBox: {
-    marginTop: 20,
-    padding: 20,
-    background: '#f0fdf4',
-    borderRadius: 12,
-    textAlign: 'center',
-    color: '#059669',
-  },
-  loadingSub: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 8,
-  },
-
-  // BLOQUEADO - Destaque especial
-  blockedBox: {
-    marginTop: 20,
-    padding: 24,
-    background: '#fff7ed',
-    border: '2px solid #f97316',
-    borderRadius: 16,
-    textAlign: 'center',
-  },
-  blockedIcon: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  blockedTitle: {
-    color: '#c2410c',
-    fontSize: 20,
-    marginBottom: 12,
-  },
-  blockedText: {
-    color: '#7c2d12',
-    fontSize: 14,
-    marginBottom: 16,
-    lineHeight: 1.5,
-  },
-  helpCard: {
+  card: {
     background: 'white',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    textAlign: 'left',
-    fontSize: 13,
-    color: '#374151',
-  },
-  helpList: {
-    margin: '8px 0 0 0',
-    paddingLeft: 20,
-    lineHeight: 1.8,
-  },
-  reloadBtn: {
-    width: '100%',
-    padding: 14,
-    background: '#f97316',
-    color: 'white',
-    border: 'none',
-    borderRadius: 10,
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: 'pointer',
-    marginBottom: 10,
-  },
-  tryAgainBtn: {
-    padding: '10px 20px',
-    background: 'none',
-    border: '1px solid #f97316',
-    color: '#c2410c',
-    borderRadius: 8,
-    fontSize: 13,
-    cursor: 'pointer',
-  },
-
-  errorBox: {
-    marginTop: 20,
-    padding: 20,
-    background: '#fef2f2',
-    borderRadius: 12,
-    color: '#dc2626',
+    borderRadius: '16px',
+    padding: '24px',
     textAlign: 'center',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    marginBottom: '20px',
   },
-  retryBtn: {
-    marginTop: 12,
-    padding: '10px 20px',
-    background: '#dc2626',
-    color: 'white',
-    border: 'none',
-    borderRadius: 8,
-    cursor: 'pointer',
-  },
-
-  resultBox: {
-    marginTop: 20,
-    padding: 24,
-    background: 'white',
-    borderRadius: 16,
-    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-  },
-  addressBlock: {
-    borderLeft: '4px solid #059669',
-    paddingLeft: 16,
-    marginBottom: 16,
+  badge: {
+    display: 'inline-block',
+    background: '#fef3c7',
+    color: '#92400e',
+    padding: '6px 12px',
+    borderRadius: '20px',
+    fontSize: '14px',
+    fontWeight: '500',
+    marginBottom: '16px',
   },
   street: {
-    fontSize: 24,
-    fontWeight: 700,
+    fontSize: '24px',
+    fontWeight: '700',
     color: '#111827',
-    margin: '0 0 4px 0',
-    lineHeight: 1.2,
+    margin: '0 0 8px 0',
+    lineHeight: '1.2',
   },
-  neighbourhood: {
-    fontSize: 18,
+  neighborhood: {
+    fontSize: '18px',
     color: '#059669',
-    fontWeight: 600,
-    margin: '4px 0',
+    fontWeight: '600',
+    margin: '0 0 4px 0',
   },
   city: {
-    fontSize: 15,
+    fontSize: '16px',
     color: '#6b7280',
-    margin: 0,
+    margin: '0 0 16px 0',
   },
-  coordinates: {
+  coords: {
     fontFamily: 'monospace',
-    fontSize: 13,
     color: '#9ca3af',
-    background: '#f3f4f6',
-    padding: 8,
-    borderRadius: 6,
-    marginTop: 12,
+    fontSize: '14px',
+    marginBottom: '12px',
   },
-  timestamp: {
-    fontSize: 12,
-    color: '#9ca3af',
-    marginTop: 8,
+  datetime: {
+    color: '#6b7280',
+    fontSize: '14px',
+    marginBottom: '20px',
   },
-  actions: {
-    display: 'flex',
-    gap: 12,
-    marginTop: 20,
+  mapSection: {
+    marginTop: '20px',
   },
-  whatsappBtn: {
-    flex: 1,
-    padding: 16,
-    background: '#25d366',
-    color: 'white',
-    border: 'none',
-    borderRadius: 12,
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: 'pointer',
+  mapTitle: {
+    fontSize: '16px',
+    color: '#374151',
+    marginBottom: '12px',
+    textAlign: 'center',
   },
-  copyBtn: {
-    flex: 1,
-    padding: 16,
-    background: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: 12,
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: 'pointer',
+  loading: {
+    padding: '40px',
+    color: '#6b7280',
   },
-}
+};
