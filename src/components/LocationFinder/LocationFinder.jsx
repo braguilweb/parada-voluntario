@@ -28,6 +28,8 @@ export function LocationFinder() {
           street: addr.road || addr.pedestrian || 'Rua não identificada',
           neighborhood: addr.suburb || addr.neighbourhood || 'Bairro não identificado',
           city: addr.city || addr.town || addr.village || 'Cidade não identificada',
+          state: addr.state || '',
+          postcode: addr.postcode || '',
           accuracy: position.accuracy
         });
       } catch (err) {
@@ -49,13 +51,13 @@ export function LocationFinder() {
 
   return (
     <div style={styles.container}>
-      {/* Botão principal - igual estava antes */}
+      {/* Botão principal */}
       <button 
         onClick={handleGetLocation}
         disabled={loading}
         style={styles.mainButton}
       >
-        {loading ? '📡 Buscando...' : '📍 Onde estou?'}
+        {loading ? '📡 Buscando...' : '🔄 Atualizar Localização'}
       </button>
 
       {/* Card de informações - igual estava antes */}
@@ -74,23 +76,30 @@ export function LocationFinder() {
                 ✓ Boa (~{Math.round(address.accuracy || 17)}m)
               </div>
 
-              {/* Endereço */}
+              {/* Endereço completo */}
               <h2 style={styles.street}>{address.street}</h2>
-              <h3 style={styles.neighborhood}>{address.neighborhood}</h3>
-              <p style={styles.city}>{address.city}</p>
+              <p style={styles.neighborhood}>{address.neighborhood}</p>
+              
+              {/* Cidade, Estado, CEP */}
+              <p style={styles.location}>
+                {address.city}{address.state ? ', ' + address.state : ''}
+                {address.postcode ? ` • ${address.postcode}` : ''}
+              </p>
 
               {/* Coordenadas */}
-              <div style={styles.coords}>
-                {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+              <div style={styles.coordsSection}>
+                <div style={styles.coords}>
+                  🔗 {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+                </div>
               </div>
 
               {/* Data/hora */}
               <div style={styles.datetime}>
-                📍 {new Date().toLocaleString('pt-BR')}
+                🕐 {new Date().toLocaleString('pt-BR')}
               </div>
 
               {/* Botões */}
-              <ShareButtons position={position} userName={userName} />
+              <ShareButtons position={position} userName={userName} address={address} />
             </>
           ) : null}
         </div>
@@ -150,21 +159,30 @@ const styles = {
     lineHeight: '1.2',
   },
   neighborhood: {
-    fontSize: '18px',
-    color: '#059669',
-    fontWeight: '600',
-    margin: '0 0 4px 0',
-  },
-  city: {
     fontSize: '16px',
     color: '#6b7280',
+    margin: '0 0 12px 0',
+    fontWeight: '500',
+  },
+  location: {
+    fontSize: '14px',
+    color: '#059669',
+    fontWeight: '600',
     margin: '0 0 16px 0',
+  },
+  coordsSection: {
+    background: '#f9fafb',
+    padding: '12px',
+    borderRadius: '8px',
+    marginBottom: '16px',
+    border: '1px solid #e5e7eb',
   },
   coords: {
     fontFamily: 'monospace',
-    color: '#9ca3af',
-    fontSize: '14px',
-    marginBottom: '12px',
+    color: '#374151',
+    fontSize: '13px',
+    margin: '0',
+    fontWeight: '500',
   },
   datetime: {
     color: '#6b7280',

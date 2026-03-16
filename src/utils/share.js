@@ -1,21 +1,26 @@
 // src/utils/share.js
 
-export const shareLocation = async (position, userName) => {
+const APP_URL = 'https://parei-aqui-guilherme-bragas-projects.vercel.app';
+
+export const shareLocation = async (position, userName, address = {}) => {
   if (!position) {
     alert('Localização não disponível');
     return;
   }
 
   const { lat, lng } = position;
-  const text = `🙋 ${userName} em trabalho voluntário!\n\n📍 https://maps.google.com/?q=${lat},${lng}\n\n🕐 ${new Date().toLocaleString('pt-BR')}`;
+  const addressLine = address.street ? `${address.street}, ${address.neighborhood}` : 'Local registrado';
+  const cityLine = address.city ? `${address.city}${address.state ? ', ' + address.state : ''}` : '';
+  
+  const text = `🙋 ${userName} em trabalho voluntário!\n\n📍 ${addressLine}\n${cityLine}\n\n🔗 https://maps.google.com/?q=${lat},${lng}\n\n🕐 ${new Date().toLocaleString('pt-BR')}\n\n👇 Baixe o app também:\n${APP_URL}`;
 
   // Tenta Web Share API (mobile)
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'Parada Voluntário',
+        title: 'Parei Aqui',
         text: text,
-        url: `https://maps.google.com/?q=${lat},${lng}`
+        url: APP_URL
       });
       return;
     } catch (err) {
