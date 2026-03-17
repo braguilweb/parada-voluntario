@@ -1,6 +1,7 @@
 // src/components/ShareButtons/ShareButtons.jsx
 import { useState } from 'react';
 import { shareLocation, copyCoordinates } from '../../utils/share';
+import { ShareModal } from './ShareModal';
 
 // SVG Icons
 const ShareIcon = () => (
@@ -20,8 +21,9 @@ const CopyIcon = () => (
   </svg>
 );
 
-export function ShareButtons({ position, userName, address = {} }) {
+export function ShareButtons({ position, userName, address = {}, shareImage = null }) {
   const [copied, setCopied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCopy = async () => {
     const success = await copyCoordinates(position);
@@ -31,20 +33,34 @@ export function ShareButtons({ position, userName, address = {} }) {
     }
   };
 
-  const handleShare = async () => {
-    await shareLocation(position, userName, address);
+  const handleShareClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmShare = async (customNote) => {
+    setIsModalOpen(false);
+    
+    // Usa a imagem pré-gerada se disponível
+    await shareLocation(position, userName, address, customNote, shareImage);
   };
 
   return (
     <div style={styles.container}>
       <button 
-        onClick={handleShare}
+        onClick={handleShareClick}
         disabled={!position}
         style={{ ...styles.button, ...styles.share }}
       >
         <ShareIcon />
         Compartilhar
       </button>
+
+      <ShareModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmShare}
+        userName={userName}
+      />
       
       <button 
         onClick={handleCopy}

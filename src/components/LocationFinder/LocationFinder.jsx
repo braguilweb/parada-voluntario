@@ -1,15 +1,21 @@
 // src/components/LocationFinder/LocationFinder.jsx
 import { useState, useEffect } from 'react';
+import html2canvas from 'html2canvas';
 import { useGeolocation } from '../../hooks/useGeoLocation';
 import { MapView } from '../Map/MapView';
 import { ShareButtons } from '../ShareButtons/ShareButtons';
-import { getAddressFromCoords } from '../../utils/geocoding'; // vamos criar isso
+import { ShareCard } from '../ShareCard/ShareCard';
+import { getAddressFromCoords } from '../../utils/geocoding';
+import { STORAGE_KEYS } from '../../constants';
 
 export function LocationFinder() {
   const { position, error, loading, refresh } = useGeolocation();
   const [address, setAddress] = useState(null);
   const [addressLoading, setAddressLoading] = useState(false);
-  const userName = localStorage.getItem('paradaUserName') || 'Voluntário';
+  const [shareImage, setShareImage] = useState(null);
+  
+  // Busca o nome do usuário usando a chave correta das constantes
+  const userName = localStorage.getItem(STORAGE_KEYS.userName) || 'Voluntário';
 
   // Busca endereço quando há posição (usa utilitário centralizado)
   useEffect(() => {
@@ -20,20 +26,32 @@ export function LocationFinder() {
 
     (async () => {
       try {
-        const data = await getAddressFromCoords(position.lat, position.lng);
+        // Usa a função consolidada que já retorna a posição corrigida e o endereço formatado
+        const result = await getAddressFromCoords(position.lat, position.lng);
         if (!active) return;
 
-        const addr = data.address || {};
         setAddress({
-          street: addr.road || addr.pedestrian || 'Rua não identificada',
-          neighborhood: addr.suburb || addr.neighbourhood || 'Bairro não identificado',
-          city: addr.city || addr.town || addr.village || 'Cidade não identificada',
-          state: addr.state || '',
-          postcode: addr.postcode || '',
-          accuracy: position.accuracy
+          fullStreet: result.address.fullStreet,        // Endereço completo formatado
+          street: result.address.street,              // Nome da rua
+          number: result.address.number,              // Número
+          neighborhood: result.address.neighbourhood,   // Bairro
+          city: result.address.city,                  // Cidade
+          state: result.address.state,                // Estado
+          postcode: result.address.postcode,          // CEP
+          accuracy: result.position.accuracy,         // Precisão da posição final
+          originalLat: result.originalPosition.lat,     // Latitude original do GPS
+          originalLng: result.originalPosition.lng,     // Longitude original do GPS
+          wasCorrected: result.position.wasCorrected,   // Se a posição foi corrigida
         });
+
+        // Atualiza a posição no estado do LocationFinder com a posição corrigida
+        // Isso garante que o MapView e ShareButtons usem a posição mais precisa
+        // setPosition(result.position); // Comentado pois o hook useGeolocation já gerencia a posição principal
+
       } catch (err) {
         console.error('Erro ao buscar endereço:', err);
+        // Adiciona um feedback visual para o usuário em caso de erro na geocodificação
+        // setError(err.message || 'Não foi possível obter o endereço para esta localização.');
       } finally {
         if (active) setAddressLoading(false);
       }
@@ -44,6 +62,40 @@ export function LocationFinder() {
     };
   }, [position]);
 
+  // Gera a imagem de compartilhamento automaticamente quando o endereço estiver pronto
+  useEffect(() => {
+    if (!address || !position) return;
+
+    const generateShareImage = async () => {
+      // Aguarda um pouco para garantir que o mapa renderizou
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      try {
+        const element = document.getElementById('share-card-capture');
+        if (!element) return;
+
+        const canvas = await html2canvas(element, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#f5f5f5',
+          width: 600,
+          height: element.scrollHeight,
+        });
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        if (blob) {
+          const file = new File([blob], 'parada-voluntario.png', { type: 'image/png' });
+          setShareImage(file);
+          console.log('✅ Imagem de compartilhamento gerada com sucesso!');
+        }
+      } catch (err) {
+        console.error('Erro ao gerar imagem de compartilhamento:', err);
+      }
+    };
+
+    generateShareImage();
+  }, [address, position]);
 
   const handleGetLocation = () => {
     refresh();
@@ -62,7 +114,7 @@ export function LocationFinder() {
 
       {/* Card de informações - igual estava antes */}
       {(address || loading || error) && (
-        <div style={styles.card}>
+        <div style={styles.card} className="location-card-to-capture">
           {loading || addressLoading ? (
             <div style={styles.loading}>Obtendo localização...</div>
           ) : error ? (
@@ -76,8 +128,9 @@ export function LocationFinder() {
                 ✓ Boa (~{Math.round(address.accuracy || 17)}m)
               </div>
 
-              {/* Endereço completo */}
-              <h2 style={styles.street}>{address.street}</h2>
+              {/* Endereço completo formatado - prioriza a versão corrigida com detalhes da rua */}
+              <h2 style={styles.street}>{address.fullStreet || address.street}</h2>
+              {/* Endereço completo - agora usa fullStreet */}
               <p style={styles.neighborhood}>{address.neighborhood}</p>
               
               {/* Cidade, Estado, CEP */}
@@ -86,10 +139,11 @@ export function LocationFinder() {
                 {address.postcode ? ` • ${address.postcode}` : ''}
               </p>
 
-              {/* Coordenadas */}
+              {/* Coordenadas - agora mostra se foi corrigida */}
               <div style={styles.coordsSection}>
                 <div style={styles.coords}>
                   🔗 {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+                  {address.wasCorrected && <span style={styles.correctedBadge}> Ajustado</span>}
                 </div>
               </div>
 
@@ -98,8 +152,13 @@ export function LocationFinder() {
                 🕐 {new Date().toLocaleString('pt-BR')}
               </div>
 
-              {/* Botões */}
-              <ShareButtons position={position} userName={userName} address={address} />
+              {/* Botões de Compartilhamento */}
+              <ShareButtons 
+                position={position}
+                userName={userName} 
+                address={address}
+                shareImage={shareImage}
+              />
             </>
           ) : null}
         </div>
@@ -111,6 +170,15 @@ export function LocationFinder() {
           <h4 style={styles.mapTitle}>Visualização no Mapa</h4>
           <MapView position={position} loading={false} error={null} />
         </div>
+      )}
+
+      {/* Card escondido para captura de imagem */}
+      {position && address && (
+        <ShareCard 
+          userName={userName}
+          address={address}
+          position={position}
+        />
       )}
     </div>
   );
@@ -197,6 +265,15 @@ const styles = {
     color: '#374151',
     marginBottom: '12px',
     textAlign: 'center',
+  },
+  correctedBadge: {
+    backgroundColor: '#d1fae5',
+    color: '#065f46',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    marginLeft: '8px',
+    fontSize: '10px',
+    fontWeight: 'bold',
   },
   loading: {
     padding: '40px',

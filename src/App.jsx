@@ -15,8 +15,8 @@ export default function App() {
     return localStorage.getItem(STORAGE_KEYS.lgpdConsent) === 'true'
   })
   
-  const [userName, setUserName] = useState(() => {
-    return localStorage.getItem(STORAGE_KEYS.userName) || ''
+  const [userName, setUserName] = useState(() => {        // Carrega nome do usuário do localStorage, ou vazio se não existir
+    return localStorage.getItem(STORAGE_KEYS.userName) || ''    // Carrega nome do usuário do localStorage, ou vazio se não existir
   })
 
   // Handlers

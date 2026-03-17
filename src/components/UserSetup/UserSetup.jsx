@@ -11,12 +11,13 @@ import { APP_CONFIG } from '../../constants'
 // - currentName: nome já salvo (opcional, para edição)
 export function UserSetup({ onComplete, currentName = '' }) {
   
-  // Estado local do input (não afeta o pai ainda)
+  // Estados locais
   const [name, setName] = useState(currentName)
   const [error, setError] = useState('')
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
-  const handleSubmit = (e) => {
-    e.preventDefault() // Evita recarregar a página
+  const handleInitialSubmit = (e) => {
+    e.preventDefault()
     
     const trimmed = name.trim()
     
@@ -31,56 +32,94 @@ export function UserSetup({ onComplete, currentName = '' }) {
       return
     }
     
-    // Tudo certo, chama função do pai
     setError('')
-    onComplete(trimmed)
+    setShowConfirmation(true) // Mostra tela de confirmação
+  }
+
+  const handleConfirm = () => {
+    onComplete(name.trim())
+  }
+
+  const handleEdit = () => {
+    setShowConfirmation(false)
   }
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         
+        {/* Ícone fixo no topo */}
         <div style={styles.icon}>👤</div>
-        
-        <h1 style={styles.title}>Quem está registrando?</h1>
-        
-        <p style={styles.subtitle}>
-          Digite seu nome para identificar os registros no histórico
-        </p>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value)
-              setError('') // Limpa erro ao digitar
-            }}
-            placeholder="Seu primeiro nome"
-            style={{
-              ...styles.input,
-              borderColor: error ? APP_CONFIG.colors.danger : '#e5e7eb'
-            }}
-            maxLength={30}
-            autoFocus // Cursor já começa aqui
-          />
-          
-          {error && (
-            <p style={styles.error}>{error}</p>
-          )}
+        {!showConfirmation ? (
+          <>
+            <h1 style={styles.title}>Quem está registrando?</h1>
+            
+            <p style={styles.subtitle}>
+              Digite seu nome para identificar os registros no histórico e compartilhamentos
+            </p>
 
-          <button 
-            type="submit"
-            disabled={!name.trim()}
-            style={{
-              ...styles.button,
-              opacity: name.trim() ? 1 : 0.6,
-              cursor: name.trim() ? 'pointer' : 'not-allowed'
-            }}
-          >
-            Continuar →
-          </button>
-        </form>
+            <form onSubmit={handleInitialSubmit} style={styles.form}>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  setError('')
+                }}
+                placeholder="Seu primeiro nome"
+                style={{
+                  ...styles.input,
+                  borderColor: error ? APP_CONFIG.colors.danger : '#e5e7eb'
+                }}
+                maxLength={30}
+                autoFocus
+              />
+              
+              {error && (
+                <p style={styles.error}>{error}</p>
+              )}
+
+              <button 
+                type="submit"
+                disabled={!name.trim()}
+                style={{
+                  ...styles.button,
+                  opacity: name.trim() ? 1 : 0.6,
+                  cursor: name.trim() ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Continuar →
+              </button>
+            </form>
+          </>
+        ) : (
+          <div style={styles.confirmationSection}>
+            <h1 style={styles.title}>Confirme seu nome</h1>
+            
+            <p style={styles.confirmedName}>"{name.trim()}"</p>
+            
+            <p style={styles.subtitle}>
+              Este nome aparecerá nos seus compartilhamentos de localização. Está CORRETO?
+            </p>
+
+            <div style={styles.buttonGroup}>
+              <button 
+                onClick={handleConfirm}
+                style={styles.confirmButton}
+              >
+                Sim, está certo
+              </button>
+              
+              <button 
+                onClick={handleEdit}
+                style={styles.editButton}
+              >
+                Corrigir
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Dica de privacidade */}
         <p style={styles.privacyNote}>
@@ -168,5 +207,47 @@ const styles = {
     marginTop: 20,
     fontSize: 12,
     color: '#9ca3af',
+  },
+
+  /* Novos estilos para confirmação */
+  confirmationSection: {
+    animation: 'fadeIn 0.3s ease-out',
+  },
+
+  confirmedName: {
+    fontSize: 32,
+    fontWeight: 800,
+    color: APP_CONFIG.colors.primary,
+    margin: '12px 0',
+  },
+
+  buttonGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+    marginTop: 16,
+  },
+
+  confirmButton: {
+    padding: 16,
+    background: APP_CONFIG.colors.primary,
+    color: 'white',
+    border: 'none',
+    borderRadius: 12,
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  },
+
+  editButton: {
+    padding: 12,
+    background: 'transparent',
+    color: '#6b7280',
+    border: '2px solid #e5e7eb',
+    borderRadius: 12,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
   },
 }

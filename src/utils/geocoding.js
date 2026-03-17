@@ -1,13 +1,5 @@
 // src/utils/geocoding.js
-export const getAddressFromCoords = async (lat, lng) => {
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
-    );
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching address:', error);
-    throw error;
-  }
-}
+// Re-exporta a função principal de geocodificação e correção de rua
+// para centralizar a lógica e evitar duplicação.
+// Agora, getAddressFromCoords irá usar a lógica mais completa de geolocation.js.
+export { getAccurateRoadPosition as getAddressFromCoords } from './geolocation';

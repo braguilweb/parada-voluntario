@@ -1,34 +1,69 @@
 // src/utils/share.js
 
-const APP_URL = 'https://parei-aqui-guilherme-bragas-projects.vercel.app';
+const APP_URL = 'https://parei-aqui.vercel.app/';
 
-export const shareLocation = async (position, userName, address = {}) => {
+// Formata a data e hora em português
+const formatDateTime = () => {
+  const now = new Date();
+  const options = { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  };
+  const formatted = now.toLocaleDateString('pt-BR', options);
+  // Transforma a primeira letra em maiúscula
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+};
+
+export const shareLocation = async (position, userName, address = {}, customNote = '', imageFile = null) => {
   if (!position) {
     alert('Localização não disponível');
     return;
   }
 
   const { lat, lng } = position;
-  const addressLine = address.street ? `${address.street}, ${address.neighborhood}` : 'Local registrado';
-  const cityLine = address.city ? `${address.city}${address.state ? ', ' + address.state : ''}` : '';
   
-  const text = `🙋 ${userName} em trabalho voluntário!\n\n📍 ${addressLine}\n${cityLine}\n\n🔗 https://maps.google.com/?q=${lat},${lng}\n\n🕐 ${new Date().toLocaleString('pt-BR')}\n\n👇 Baixe o app também:\n${APP_URL}`;
+  // Constrói a mensagem refinada
+  const header = `😊 Compartilhando minha localização com App Parei Aqui\n\n`;
+  const user = `👤 ${userName}\n`;
+  const street = `📍 ${address.street || 'Rua não identificada'}, ${address.neighborhood || 'Bairro não identificado'}\n`;
+  const city = `   ${address.city || ''}${address.state ? ', ' + address.state : ''}\n`;
+  const zip = address.postcode ? `   CEP: ${address.postcode}\n` : '';
+  
+  const dateTime = `\n🕐 ${formatDateTime()}\n\n`;
+  
+  const note = customNote ? `📝 Motivo: ${customNote}\n\n` : '';
+  
+  const mapsLink = `Link com as coordenadas:\nhttps://www.google.com/maps?q=${lat},${lng}\n\n`;
+  
+  const footer = `Gostou dessa mensagem? Baixe o app Parei Aqui\n${APP_URL}`;
+
+  const text = `${header}${user}${street}${city}${zip}${dateTime}${note}${mapsLink}${footer}`;
 
   // Tenta Web Share API (mobile)
   if (navigator.share) {
     try {
-      await navigator.share({
+      const shareData = {
         title: 'Parei Aqui',
         text: text,
-        url: APP_URL
-      });
+      };
+
+      // Adiciona o arquivo de imagem se existir e o navegador suportar
+      if (imageFile && navigator.canShare && navigator.canShare({ files: [imageFile] })) {
+        shareData.files = [imageFile];
+      }
+
+      await navigator.share(shareData);
       return;
     } catch (err) {
       if (err.name !== 'AbortError') console.error('Share failed:', err);
     }
   }
 
-  // Fallback: WhatsApp Web
+  // Fallback: WhatsApp Web (apenas texto)
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 };
 
