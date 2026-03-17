@@ -142,7 +142,7 @@ export function LocationFinder() {
               {/* Coordenadas - agora mostra se foi corrigida */}
               <div style={styles.coordsSection}>
                 <div style={styles.coords}>
-                  🔗 {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+                  🔗 {correctedPosition.lat.toFixed(6)}, {correctedPosition.lng.toFixed(6)}
                   {address.wasCorrected && <span style={styles.correctedBadge}> Ajustado</span>}
                 </div>
               </div>
