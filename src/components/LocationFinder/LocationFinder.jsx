@@ -5,7 +5,7 @@ import { useGeolocation } from '../../hooks/useGeoLocation';
 import { MapView } from '../Map/MapView';
 import { ShareButtons } from '../ShareButtons/ShareButtons';
 import { ShareCard } from '../ShareCard/ShareCard';
-import { getAddressFromCoords } from '../../utils/geocoding';
+import { getAccurateRoadPosition } from '../../utils/geolocation';
 import { STORAGE_KEYS } from '../../constants';
 
 export function LocationFinder() {
@@ -13,6 +13,7 @@ export function LocationFinder() {
   const [address, setAddress] = useState(null);
   const [addressLoading, setAddressLoading] = useState(false);
   const [shareImage, setShareImage] = useState(null);
+  const [correctedPosition, setCorrectedPosition] = useState(null);
   
   // Busca o nome do usuário usando a chave correta das constantes
   const userName = localStorage.getItem(STORAGE_KEYS.userName) || 'Voluntário';
@@ -27,7 +28,7 @@ export function LocationFinder() {
     (async () => {
       try {
         // Usa a função consolidada que já retorna a posição corrigida e o endereço formatado
-        const result = await getAddressFromCoords(position.lat, position.lng);
+        const result = await getAccurateRoadPosition();
         if (!active) return;
 
         setAddress({
@@ -44,9 +45,8 @@ export function LocationFinder() {
           wasCorrected: result.position.wasCorrected,   // Se a posição foi corrigida
         });
 
-        // Atualiza a posição no estado do LocationFinder com a posição corrigida
-        // Isso garante que o MapView e ShareButtons usem a posição mais precisa
-        // setPosition(result.position); // Comentado pois o hook useGeolocation já gerencia a posição principal
+        // Armazena a posição corrigida para usar no mapa e compartilhamento
+        setCorrectedPosition(result.position);
 
       } catch (err) {
         console.error('Erro ao buscar endereço:', err);
@@ -154,7 +154,7 @@ export function LocationFinder() {
 
               {/* Botões de Compartilhamento */}
               <ShareButtons 
-                position={position}
+                position={correctedPosition}
                 userName={userName} 
                 address={address}
                 shareImage={shareImage}
@@ -165,19 +165,19 @@ export function LocationFinder() {
       )}
 
       {/* MAPA NOVO - Adicionado abaixo do card */}
-      {position && (
+      {correctedPosition && (
         <div style={styles.mapSection}>
           <h4 style={styles.mapTitle}>Visualização no Mapa</h4>
-          <MapView position={position} loading={false} error={null} />
+          <MapView position={correctedPosition} loading={false} error={null} />
         </div>
       )}
 
       {/* Card escondido para captura de imagem */}
-      {position && address && (
+      {correctedPosition && address && (
         <ShareCard 
           userName={userName}
           address={address}
-          position={position}
+          position={correctedPosition}
         />
       )}
     </div>
