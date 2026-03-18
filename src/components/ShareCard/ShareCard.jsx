@@ -1,6 +1,14 @@
 // src/components/ShareCard/ShareCard.jsx
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet';
+import L from 'leaflet';
 import { APP_CONFIG } from '../../constants';
+
+const customIcon = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+  popupAnchor: [0, -38]
+});
 
 export function ShareCard({ userName, address, position, customNote = '' }) {
   if (!position || !address) return null;
@@ -73,7 +81,11 @@ export function ShareCard({ userName, address, position, customNote = '' }) {
             radius={address.accuracy || 50}
             pathOptions={{ color: APP_CONFIG.colors.primary, fillColor: APP_CONFIG.colors.primary, fillOpacity: 0.2 }}
           />
-          <Marker position={[position.lat, position.lng]} />
+          <Marker 
+            position={[position.lat, position.lng]}
+            icon={customIcon} 
+            
+          />
         </MapContainer>
       </div>
 
@@ -102,19 +114,19 @@ export function ShareCard({ userName, address, position, customNote = '' }) {
 
 const styles = {
   container: {
-  position: 'fixed', // ou 'absolute' com top/left normais
-  top: 0,
-  left: 0,
-  width: '600px',
-  background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)',
-  borderRadius: '24px',
-  padding: '32px',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-  opacity: 0, // 👈 invisível mas com dimensões
-  pointerEvents: 'none', // 👈 não interfere com cliques
-  zIndex: -1, // 👈 fica atrás de tudo
-},
+    position: 'fixed',
+    top: '-9999px',  // 👈 fora da tela para evitar flicker
+    left: '-9999px',
+    width: '600px',
+    background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)',
+    borderRadius: '24px',
+    padding: '32px',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+    opacity: 1, // 👈 sempre visível para html2canvas
+    pointerEvents: 'none', // 👈 não interfere com cliques
+    zIndex: -1, // 👈 fica atrás de tudo
+  },
   header: {
     display: 'flex',
     alignItems: 'center',
