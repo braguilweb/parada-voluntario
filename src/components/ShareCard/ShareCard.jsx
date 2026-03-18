@@ -102,16 +102,19 @@ export function ShareCard({ userName, address, position, customNote = '' }) {
 
 const styles = {
   container: {
-    position: 'absolute',
-    left: '-9999px',
-    top: 0,
-    width: '600px',
-    background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)',
-    borderRadius: '24px',
-    padding: '32px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-  },
+  position: 'fixed', // ou 'absolute' com top/left normais
+  top: 0,
+  left: 0,
+  width: '600px',
+  background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)',
+  borderRadius: '24px',
+  padding: '32px',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+  opacity: 0, // 👈 invisível mas com dimensões
+  pointerEvents: 'none', // 👈 não interfere com cliques
+  zIndex: -1, // 👈 fica atrás de tudo
+},
   header: {
     display: 'flex',
     alignItems: 'center',
